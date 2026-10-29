@@ -17,7 +17,7 @@ NumPy is pinned below 2 because the retained imgaug pipeline requires its older 
 
 ## Data and V10 Lists
 
-Use the existing preprocessed LA HDF5 dataset without copying it into this repository:
+Use the existing preprocessed LA HDF5 dataset:
 
 ```text
 DATA_ROOT/CASE_ID/mri_norm2.h5   # image and label datasets
