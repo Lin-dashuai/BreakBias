@@ -1,0 +1,49 @@
+{
+  "dataset": "LA",
+  "labeled_rate": 20,
+  "model": "UV",
+  "nclass": 2,
+  "image_channel": 1,
+  "n_filters1": 16,
+  "n_filters2": 16,
+  "lr": 0.01,
+  "batch_size": 4,
+  "crop_size": [
+    112,
+    112,
+    80
+  ],
+  "max_iterations": 6000,
+  "tree_mode": 1,
+  "tree_areathrehold": 100,
+  "tree_topoprob": 0.5,
+  "ddfp": {
+    "start_epoch": 10,
+    "lr": 0.0001,
+    "noise": 1e-05,
+    "grad_clip": 1.0,
+    "eps": 0.01,
+    "loss_weight": 0.7,
+    "ema_decay": 0.999,
+    "sample_batch_size": 20480,
+    "layer_dims": 512,
+    "num_blocks": 8,
+    "clamping": 2.0
+  },
+  "validation_interval": 250,
+  "eval_patch": [
+    112,
+    112,
+    80
+  ],
+  "eval_stride_xy": 18,
+  "eval_stride_z": 4,
+  "eval_nms": 0,
+  "seed": 1337,
+  "cons_weight": 1.0,
+  "rampup_iter": 1500,
+  "recipe": "H03_FULL",
+  "accumulation_steps": 2,
+  "role_trigger_prob": 0.7,
+  "role_altitude_jitter": 7.5
+}
