@@ -1,6 +1,6 @@
-# BreakBias: H03 FULL on LA V10
+# BreakBias:
 
-Minimal training and testing code for the confirmed **H03 FULL** LA 5% recipe, plus its Explorer checkpoint and the separately identified original FULL checkpoint used for the paper's historical LA5 result. No datasets, predictions, experiment logs, HPO runners, or other methods are included.
+Minimal training and testing code for the confirmed **BreakBias** LA 5% recipe, plus its Explorer checkpoint and the separately identified original FULL checkpoint used for the paper's historical LA5 result.
 
 **H03 FULL uses the LA dataset protocol-version training setup: a 112 x 112 x 80 training crop.** The original FULL checkpoint corresponds to the paper's historical 96 x 96 x 96 training setup. These are separately identified training versions, not the same recipe with renamed weights. Validation/test sliding-window strides are specified independently below: H03 XY/Z = 18/4, original FULL = 16/16.
 
