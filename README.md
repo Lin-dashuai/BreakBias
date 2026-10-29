@@ -4,7 +4,6 @@ Minimal training and testing code for the confirmed **BreakBias** LA 5% recipe, 
 
 **H03 FULL uses the LA dataset protocol-version training setup: a 112 x 112 x 80 training crop.** The original FULL checkpoint corresponds to the paper's historical 96 x 96 x 96 training setup. Validation/test sliding-window strides are specified independently below: H03 XY/Z = 18/4, original FULL = 16/16.
 
-The public interfaces use the paper terminology: **RVP** in `rvp.py`, **ADP** in `adp.py`, and `image_ap` / `image_be` for the anatomy-preserving / bias-exposing views. In this H03 recipe, the **UNet3D Exploiter** uses AP and density ascent, while the **VNet Explorer** uses BE and density descent. The historical checkpoint names `model1` and `model2` correspond to those H03 roles respectively. RealNVP/FrEIA is a density estimator, not the input-view RVP module.
 
 ## Environment
 
