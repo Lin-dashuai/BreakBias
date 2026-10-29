@@ -31,7 +31,6 @@ The supplied lists have **80 training / 10 validation / 10 test** cases. Label r
 | 10% | partitions/LA/1_10 | 8 | 72 |
 | 20% | partitions/LA/1_5 | 16 | 64 |
 
-The training, validation and test sets are disjoint. The validation/test split was retrospectively made from the historical 20-case evaluation set with split seed 20261017; this is **not a newly unseen blind test**. The 10%/20% lists are supplied as requested, but this repository only supplies and verifies an H03 **5% training configuration**, not tuned 10%/20% recipes.
 
 ## H03 FULL Training
 
