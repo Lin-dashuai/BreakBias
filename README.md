@@ -2,7 +2,7 @@
 
 Minimal training and testing code for the confirmed **BreakBias** LA 5% recipe, plus its Explorer checkpoint and the separately identified original FULL checkpoint used for the paper's historical LA5 result.
 
-**H03 FULL uses the LA dataset protocol-version training setup: a 112 x 112 x 80 training crop.** The original FULL checkpoint corresponds to the paper's historical 96 x 96 x 96 training setup. These are separately identified training versions, not the same recipe with renamed weights. Validation/test sliding-window strides are specified independently below: H03 XY/Z = 18/4, original FULL = 16/16.
+**H03 FULL uses the LA dataset protocol-version training setup: a 112 x 112 x 80 training crop.** The original FULL checkpoint corresponds to the paper's historical 96 x 96 x 96 training setup. Validation/test sliding-window strides are specified independently below: H03 XY/Z = 18/4, original FULL = 16/16.
 
 The historical `ddfp_*`, `model1/model2`, and `image_similar/image_dissimilar` interfaces are intentionally retained pending a separate terminology review. In this H03 recipe, **model1 is the UNet3D Exploiter** (anatomy-preserving view, density ascent) and **model2 is the VNet Explorer** (bias-exposing view, density descent). RealNVP/FrEIA is a density estimator, not the input-view RVP module.
 
