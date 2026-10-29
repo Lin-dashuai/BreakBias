@@ -1,11 +1,11 @@
-"""Higra hard reference used by the H03 input pipeline."""
+"""Role-aware view perturbation (RVP): shared reference, BE and AP views."""
 import random
 import numpy as np
 from scipy.ndimage import rotate
 from imgaug import augmenters as iaa
 import higra as hg
 
-def tree_process_3D_higra(img, tree_type, rotate_angle, hard_strength='base'):
+def hard_filter_component_tree(img, tree_type, rotate_angle, hard_strength='base'):
     """H03 hard reference: original Higra/Gamma pipeline with count-one node removal."""
     assert hard_strength == 'base'
     img_h, img_w, img_d = img.shape
@@ -41,3 +41,31 @@ def tree_process_3D_higra(img, tree_type, rotate_angle, hard_strength='base'):
     filtered_higra = filtered_higra.astype(np.float32)
     filtered_higra = filtered_higra / 255
     return filtered_higra
+
+def _clip01(image):
+    return np.clip(image, 0.0, 1.0).astype(np.float32)
+
+def build_shared_hard_reference(image, tree_type, rotate_angle, hard_strength='base'):
+    out = hard_filter_component_tree(image, tree_type, rotate_angle, hard_strength='base')
+    if not isinstance(out, np.ndarray):
+        return image
+    return _clip01(out)
+
+def tree_sensitive_mask(image, hard_view):
+    diff = np.abs(hard_view - image)
+    if float(diff.max()) < 1e-06:
+        return np.zeros_like(image, dtype=bool)
+    thr = max(0.01, float(np.percentile(diff, 85)))
+    mask = diff > thr
+    if mask.mean() < 0.002:
+        mask = diff > max(0.003, float(np.percentile(diff, 70)))
+    return mask
+
+def anatomy_preserving_altitude_jitter(image, hard_view, jitter=5.0):
+    mask = tree_sensitive_mask(image, hard_view)
+    if not mask.any():
+        return image
+    delta = random.choice([-1.0, 1.0]) * random.uniform(0.5 * jitter / 255.0, jitter / 255.0)
+    out = image.copy()
+    out[mask] = out[mask] + delta
+    return _clip01(out)

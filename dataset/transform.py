@@ -15,22 +15,22 @@ class RandomCrop_3D(object):
         self.output_size = output_size
 
     def __call__(self, sample):
-        image_similar, image_dissimilar, label = (sample['image_similar'], sample['image_dissimilar'], sample['label'])
+        image_ap, image_be, label = (sample['image_ap'], sample['image_be'], sample['label'])
         if label.shape[0] <= self.output_size[0] or label.shape[1] <= self.output_size[1] or label.shape[2] <= self.output_size[2]:
             pw = max((self.output_size[0] - label.shape[0]) // 2 + 3, 0)
             ph = max((self.output_size[1] - label.shape[1]) // 2 + 3, 0)
             pd = max((self.output_size[2] - label.shape[2]) // 2 + 3, 0)
-            image_similar = np.pad(image_similar, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
-            image_dissimilar = np.pad(image_dissimilar, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
+            image_ap = np.pad(image_ap, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
+            image_be = np.pad(image_be, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
             label = np.pad(label, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
-        w, h, d = image_similar.shape
+        w, h, d = image_ap.shape
         w1 = np.random.randint(0, w - self.output_size[0])
         h1 = np.random.randint(0, h - self.output_size[1])
         d1 = np.random.randint(0, d - self.output_size[2])
         label = label[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        image_similar = image_similar[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        image_dissimilar = image_dissimilar[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        return {'image_similar': image_similar, 'image_dissimilar': image_dissimilar, 'label': label}
+        image_ap = image_ap[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
+        image_be = image_be[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
+        return {'image_ap': image_ap, 'image_be': image_be, 'label': label}
 
 class LabelGuidedCrop_3D(object):
     """
@@ -49,15 +49,15 @@ class LabelGuidedCrop_3D(object):
         self.foreground_prob = foreground_prob
 
     def __call__(self, sample):
-        image_similar, image_dissimilar, label = (sample['image_similar'], sample['image_dissimilar'], sample['label'])
+        image_ap, image_be, label = (sample['image_ap'], sample['image_be'], sample['label'])
         if label.shape[0] <= self.output_size[0] or label.shape[1] <= self.output_size[1] or label.shape[2] <= self.output_size[2]:
             pw = max((self.output_size[0] - label.shape[0]) // 2 + 3, 0)
             ph = max((self.output_size[1] - label.shape[1]) // 2 + 3, 0)
             pd = max((self.output_size[2] - label.shape[2]) // 2 + 3, 0)
-            image_similar = np.pad(image_similar, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
-            image_dissimilar = np.pad(image_dissimilar, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
+            image_ap = np.pad(image_ap, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
+            image_be = np.pad(image_be, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
             label = np.pad(label, [(pw, pw), (ph, ph), (pd, pd)], mode='constant', constant_values=0)
-        w, h, d = image_similar.shape
+        w, h, d = image_ap.shape
         perform_foreground_crop = random.random() < self.foreground_prob
         foreground_coords = np.argwhere(label > 0)
         if perform_foreground_crop and len(foreground_coords) > 0:
@@ -76,9 +76,9 @@ class LabelGuidedCrop_3D(object):
             h1 = np.random.randint(0, h - self.output_size[1] + 1)
             d1 = np.random.randint(0, d - self.output_size[2] + 1)
         label = label[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        image_similar = image_similar[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        image_dissimilar = image_dissimilar[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
-        return {'image_similar': image_similar, 'image_dissimilar': image_dissimilar, 'label': label}
+        image_ap = image_ap[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
+        image_be = image_be[w1:w1 + self.output_size[0], h1:h1 + self.output_size[1], d1:d1 + self.output_size[2]]
+        return {'image_ap': image_ap, 'image_be': image_be, 'label': label}
 
 class ToTensor_3D_BB(object):
 

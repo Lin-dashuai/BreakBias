@@ -4,7 +4,7 @@ Minimal training and testing code for the confirmed **BreakBias** LA 5% recipe, 
 
 **H03 FULL uses the LA dataset protocol-version training setup: a 112 x 112 x 80 training crop.** The original FULL checkpoint corresponds to the paper's historical 96 x 96 x 96 training setup. Validation/test sliding-window strides are specified independently below: H03 XY/Z = 18/4, original FULL = 16/16.
 
-The historical `ddfp_*`, `model1/model2`, and `image_similar/image_dissimilar` interfaces are intentionally retained pending a separate terminology review. In this H03 recipe, **model1 is the UNet3D Exploiter** (anatomy-preserving view, density ascent) and **model2 is the VNet Explorer** (bias-exposing view, density descent). RealNVP/FrEIA is a density estimator, not the input-view RVP module.
+The public interfaces use the paper terminology: **RVP** in `rvp.py`, **ADP** in `adp.py`, and `image_ap` / `image_be` for the anatomy-preserving / bias-exposing views. In this H03 recipe, the **UNet3D Exploiter** uses AP and density ascent, while the **VNet Explorer** uses BE and density descent. The historical checkpoint names `model1` and `model2` correspond to those H03 roles respectively. RealNVP/FrEIA is a density estimator, not the input-view RVP module.
 
 ## Environment
 
@@ -45,13 +45,15 @@ python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=1 \
 
 This is fresh training with seed 1337: UNet3D/VNet, 16 base filters, BatchNorm/dropout, FP32 training, 4 labeled plus 4 unlabeled samples per microbatch, gradient accumulation 2, SGD LR 0.01/momentum 0.9/weight decay 0.0001, the original 6000-update polynomial schedule, and full validation of both branches every 250 updates. The supervised loss is the original binary CE plus the original two-class averaged DiceLoss; it is not silently changed to a different Dice definition.
 
-H03 uses shared tree reference, trigger probability 0.7, altitude jitter 7.5/255, ADP epsilon 0.01, **ADP loss mixture 0.7 / consistency maximum 1.0 / sigmoid ramp 1500 updates**. Its NF starts at **epoch 10**, not update 10 or a newly invented fixed-update threshold. The original EMA-parameter updates, teacher forward modes, density-estimator fitting, bidirectional main/auxiliary pseudo-supervision, and discarded final incomplete accumulation group are preserved. Auxiliary perturbed predictions are not pseudo-label sources. The legacy area/topology-probability config fields are compatibility fields: the active Higra hard filter removes propagated child-count-one nodes and does not use those fields as thresholds.
+H03 uses shared tree reference, trigger probability 0.7, altitude jitter 7.5/255, ADP epsilon 0.01, **ADP loss mixture 0.7 / consistency maximum 1.0 / sigmoid ramp 1500 updates**. Its NF starts at **epoch 10**, not update 10 or a newly invented fixed-update threshold. The original EMA-parameter updates, teacher forward modes, density-estimator fitting, bidirectional main/auxiliary pseudo-supervision, and discarded final incomplete accumulation group are preserved. Auxiliary perturbed predictions are not pseudo-label sources. The active Higra hard filter removes propagated child-count-one nodes. Unused historical area/topology-probability fields are removed from the public configuration; they are ignored when reading an older configuration rather than reinterpreted as scientific thresholds.
 
 The supplied H03 ramp is 1500, whereas the manuscript's generic implementation paragraph says 2000. This release records the actual H03 run rather than changing parameters to match that paragraph.
 
 Configuration uses standard JSON to preserve numeric types exactly, including scientific-notation NF noise values. Scientific settings are checked against the frozen H03 run; the original NumPy NF sampling/indexing logic is retained.
 
-`pair_best.pth` and `pair_best_model1.pth`/`pair_best_model2.pth` are selected only by the highest mean of the two validation Dice scores, earliest tie. `last.pth` includes models, density estimators, optimizers, and global RNG states, but DataLoader worker/prefetch states are not captured; bitwise resume is not claimed, and this entry point intentionally starts fresh. Output directories must not already exist.
+`pair_best.pth` and `pair_best_exploiter.pth` / `pair_best_explorer.pth` are selected only by the highest mean of the two validation Dice scores, earliest tie. `last.pth` includes models, density estimators, optimizers, and global RNG states, but DataLoader worker/prefetch states are not captured; bitwise resume is not claimed, and this entry point intentionally starts fresh. Output directories must not already exist. New full snapshots include role-named fields plus explicit historical H03 aliases; registered model parameter names are unchanged. Existing plain weights remain loadable without conversion. Original FULL is a separately identified historical model, not an H03 role assignment.
+
+The terminology cleanup also removes a stale duplicate validation call from the previous public entry point. Full validation now has one call site, every 250 completed updates and at the final update; no loss, optimizer or H03 sampling parameter is changed.
 
 For a finite installation check, add `--smoke` and use a new output directory. It activates ADP immediately, performs two updates and validates one complete validation case. Its outputs and scores are smoke-only, not experimental results.
 
@@ -66,7 +68,14 @@ For a finite installation check, add `--smoke` and use a new output directory. I
 
 The H03 checkpoint's iteration was chosen by validation-pair mean. Historically model1 was the predefined primary; H03 model1 test10 Dice is raw 87.891163% / LCC 88.015114%. The user selected model2 for this release after examining completed test results. Its reported score must not be represented as a newly unbiased, predeclared primary result. The original FULL historical checkpoint also had test-set exposure. These historical results are supplied for transparent reproducibility, not as a new blinded model-selection claim.
 
-Only plain inference state_dict files are shipped, not optimizer or full training-state payloads. Exact file SHA256s and foreground metrics are in `weights/manifest.json`. Training H03 does not reproduce the original FULL recipe merely because its original weight is also provided.
+Only plain inference state_dict files are shipped, not optimizer or full training-state payloads. The two historical filenames and their bytes are unchanged by the terminology cleanup. Their SHA256 values are:
+
+```text
+la5_h03_full_model2_iter2000.pth  6e5b07875978c4ebad26025de82b7bdf7908d455d3e80f396e6f5a8e16c6fcb7
+la5_legacy_full_best_model1.pth  12195a77707021c937647e51de878f6a2154877ef2676040743b90302c7ecb50
+```
+
+Training H03 does not reproduce the original FULL recipe merely because its original weight is also provided.
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python test.py --preset h03-full \
@@ -76,8 +85,9 @@ CUDA_VISIBLE_DEVICES=0 python test.py --preset legacy-full \
   --data-root /path/to/LA --output-dir outputs/legacy_test10
 ```
 
-The script does not select a checkpoint using test results. To evaluate your own H03 model2 export, use `--checkpoint outputs/la5_h03_full/pair_best_model2.pth`. Each run preserves raw and original largest-connected-component predictions as HDF5, plus per-case **background and foreground** Dice, Jaccard, precision, recall, HD95, directed prediction-to-GT ASD, and symmetric ASSD in CSV/JSON. Surface distances are **voxels**, not verified millimeters; empty masks have explicit surface status and undefined distances. The original largest-component convention uses 3D full connectivity and its original tie rule.
+The script does not select a checkpoint using test results. To evaluate your own H03 Explorer export, use `--checkpoint outputs/la5_h03_full/pair_best_explorer.pth`. Each run preserves raw and original largest-connected-component predictions as HDF5, plus per-case **background and foreground** Dice, Jaccard, precision, recall, HD95, directed prediction-to-GT ASD, and symmetric ASSD in CSV/JSON. Surface distances are **voxels**, not verified millimeters; empty masks have explicit surface status and undefined distances. The original largest-component convention uses 3D full connectivity and its original tie rule.
 
 ## Source Acknowledgment
 
 The component-tree and semi-supervised segmentation lineage builds on DSAIF, while the density-estimation/feature-perturbation lineage builds on DDFP and FrEIA. UNet3D, VNet, and retained density-estimation code keep their original registered parameter names for checkpoint compatibility. Renaming paper modules does not change or erase this lineage. This minimal release does not assert a new blanket license over third-party implementations.
+
