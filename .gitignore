@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+outputs/
+.venv/
+*.pth
+*.pt
+*.ckpt
+*.npz
+*.nii
+*.nii.gz
+weights/*
+!weights/la5_f02_v10_seed42/
+!weights/la5_f02_v10_seed42/best_explorer.pth
+!weights/la5_f02_v10_seed42/best_exploiter.pth

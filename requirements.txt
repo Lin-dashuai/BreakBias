@@ -1,0 +1,10 @@
+torch==2.7.1
+torchvision==0.22.1
+numpy==1.26.4
+scipy==1.15.3
+h5py==3.14.0
+higra==0.6.12
+imgaug==0.4.0
+FrEIA==0.2
+MedPy==0.5.2
+scikit-image==0.25.2
